@@ -1,14 +1,13 @@
 import axios from 'axios';
 import React, { Component } from 'react';
-import { Text, View, ImageBackground, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { Text, View, ImageBackground, StyleSheet, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
 
 export default class MeteorScreen extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            Meteors : {}
+            Meteors: {}
         }
     }
 
@@ -18,7 +17,7 @@ export default class MeteorScreen extends Component {
 
     get_DATA = () => {
         axios.get("https://api.nasa.gov/neo/rest/v1/feed?api_key=0QM2FmFNgHZO7ltpI51Dh4ixoJCaHRCELwR5dhFT").then(Response_get => {
-            this.setState({ Meteors : Response_get.data.near_earth_objects })
+            this.setState({ Meteors: Response_get.data.near_earth_objects })
         })
             .catch(
                 error => {
@@ -30,32 +29,65 @@ export default class MeteorScreen extends Component {
     render() {
         if (Object.keys(this.state.Meteors).length == 0) {
             return (
-                <View style={{ flex: 1, justifyContent:"center"}}>
-                    <ActivityIndicator size="large" color="Black"/>
+                <View style={{ flex: 1, justifyContent: "center" }}>
+                    <ActivityIndicator size="large" color="Black" />
                 </View>
             )
         }
         else {
 
             let meteotary = Object.keys(this.state.Meteors).map(meteor_date => {
-                return(
+                return (
                     this.state.Meteors[meteor_date]
                 )
             })
 
             let meteorinfo = [].concat.apply([], meteotary)
 
-            meteorinfo.forEach(function(element) {
-                let diameter = (element.estimated_diameter.meters.estimated_diameter_min + element.estimated_diameter.meters.estimated_diameter_max)/2
-                let scary_element = (diameter/(element.close_approach_data[0].miss_distance.kilometers)/1000)
+            meteorinfo.forEach(function (element) {
+                let diameter = (element.estimated_diameter.kilometers.estimated_diameter_min + element.estimated_diameter.kilometers.estimated_diameter_max) / 2
+                let scary_element = (diameter / (element.close_approach_data[0].miss_distance.kilometers) / 1000000000)
                 element.scary_element = scary_element
+
             })
+
+            meteorinfo.sort(function (a, b) {
+                return b.scary_element - a.scary_element
+            })
+
+            meteorinfo = meteorinfo.slice(0, 5)
 
             return (
                 <View style={{ flex: 1, }}>
-                    <ImageBackground source={require("../assets/bg.png")} style={styles.bg}>
-                        
-                    </ImageBackground>
+                    <FlatList data={meteorinfo}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={
+                            ({ item }) => {
+                                let meteorinfo = item
+                                let bgimg
+
+                                if (meteorinfo.scary_element <= 30) {
+                                    bgimg = require("../assets/bg.png")
+                                }
+                                else if (meteorinfo.scary_element <= 75) {
+                                    bgimg = require("../assets/meteor.png")
+                                }
+                                else {
+                                    bgimg = require("../assets/ISS.png")
+                                }
+                                return (
+
+                                    <View>
+                                        <ImageBackground source={bgimg} style={styles.bg} />
+                                    </View>
+                                )
+                            }
+                        }
+
+
+                        horizontal={true}
+                    />
+
                 </View>
             )
         }
@@ -67,7 +99,8 @@ export default class MeteorScreen extends Component {
 const styles = StyleSheet.create({
     bg: {
         flex: 1,
-        resizeMode: "cover",
+        width: '100%',
+        height: '100%'
     },
     img: {
         width: 100,
