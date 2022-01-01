@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { Component } from 'react';
-import { Text, View, ImageBackground, StyleSheet, Alert, Image, ActivityIndicator, FlatList } from 'react-native';
+import { Text, View, ImageBackground, StyleSheet, Alert, Image, ActivityIndicator, FlatList, Dimensions} from 'react-native';
 
 export default class MeteorScreen extends Component {
 
@@ -78,7 +78,10 @@ export default class MeteorScreen extends Component {
                                 return (
 
                                     <View>
+                                        
                                         <ImageBackground source={bgimg} style={styles.bg} />
+                                        <Text style={styles.txt}>Meteor name</Text>
+                                        <Text style={styles.txt}>{item.name}</Text>
                                     </View>
                                 )
                             }
@@ -99,8 +102,9 @@ export default class MeteorScreen extends Component {
 const styles = StyleSheet.create({
     bg: {
         flex: 1,
-        width: '100%',
-        height: '100%'
+        resizeMode: "cover",
+        width: Dimensions.get('window').width, 
+        height: Dimensions.get('window').height
     },
     img: {
         width: 100,
